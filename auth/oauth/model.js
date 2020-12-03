@@ -23,10 +23,10 @@ const db = {
   },
   client: {
     // Application wanting to authenticate with this server
-    clientId: '', // Unique string representing the client
-    clientSecret: '', // Secret of the client; Can be null
-    grants: [], // Array of grants that the client can use (ie, `authorization_code`)
-    redirectUris: [], // Array of urls the client is allowed to redirect to
+    clientId: process.env.clientId ?? 'id', // Unique string representing the client
+    clientSecret: process.env.clientSecret ?? 'secret', // Secret of the client; Can be null
+    grants: ['authorization_code', 'refresh_token'], // Array of grants that the client can use (ie, `authorization_code`)
+    redirectUris: process.env.redirectUris?.split(',') ?? ['http://localhost:3030/client/app'], // Array of urls the client is allowed to redirect to
   },
   token: {
     accessToken: '', // Access token that the server created
@@ -46,18 +46,14 @@ module.exports = {
       parameters: [
         {name: 'clientId', value: clientId},
         {name: 'clientSecret', value: clientSecret},
+        {name: 'localId', value: db.client.id},
+        {name: 'localSecret', value: db.client.secret},
       ],
     })
-    db.client = {
-      // Retrieved from the database
-      clientId: clientId,
-      clientSecret: clientSecret,
-      grants: ['authorization_code', 'refresh_token'],
-      redirectUris: ['http://localhost:3030/client/app'],
+    if (clientId !== db.client.clientId || (clientSecret !== null && clientSecret != db.client.clientSecret)) {
+      return Promise.resolve(null)
     }
-    return new Promise(resolve => {
-      resolve(db.client)
-    })
+    return Promise.resolve(db.client)
   },
   // generateAccessToken: (client, user, scope) => { // generates access tokens
   //   log({
@@ -117,24 +113,6 @@ module.exports = {
     return new Promise(resolve => resolve(true))
   },
   generateAuthorizationCode: (client, user, scope) => {
-    /* 
-    For this to work, you are going have to hack this a little bit:
-    1. navigate to the node_modules folder
-    2. find the oauth_server folder. (node_modules/express-oauth-server/node_modules/oauth2-server)
-    3. open lib/handlers/authorize-handler.js
-    4. Make the following change (around line 136):
-
-    AuthorizeHandler.prototype.generateAuthorizationCode = function (client, user, scope) {
-      if (this.model.generateAuthorizationCode) {
-        // Replace this
-        //return promisify(this.model.generateAuthorizationCode).call(this.model, client, user, scope);
-        // With this
-        return this.model.generateAuthorizationCode(client, user, scope)
-      }
-      return tokenUtil.generateRandomToken();
-    };
-    */
-
     log({
       title: 'Generate Authorization Code',
       parameters: [
