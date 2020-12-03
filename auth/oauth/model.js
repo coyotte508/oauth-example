@@ -1,6 +1,7 @@
 // See https://oauth2-server.readthedocs.io/en/latest/model/spec.html for what you can do with this
 const crypto = require('crypto')
-const db = { // Here is a fast overview of what your db model should look like
+const db = {
+  // Here is a fast overview of what your db model should look like
   authorizationCode: {
     authorizationCode: '', // A string that contains the code
     expiresAt: new Date(), // A date when the code expires
@@ -8,7 +9,8 @@ const db = { // Here is a fast overview of what your db model should look like
     client: null, // See the client section
     user: null, // Whatever you want... This is where you can be flexible with the protocol
   },
-  client: { // Application wanting to authenticate with this server
+  client: {
+    // Application wanting to authenticate with this server
     clientId: '', // Unique string representing the client
     clientSecret: '', // Secret of the client; Can be null
     grants: [], // Array of grants that the client can use (ie, `authorization_code`)
@@ -30,11 +32,12 @@ module.exports = {
     log({
       title: 'Get Client',
       parameters: [
-        { name: 'clientId', value: clientId },
-        { name: 'clientSecret', value: clientSecret },
-      ]
+        {name: 'clientId', value: clientId},
+        {name: 'clientSecret', value: clientSecret},
+      ],
     })
-    db.client = { // Retrieved from the database
+    db.client = {
+      // Retrieved from the database
       clientId: clientId,
       clientSecret: clientSecret,
       grants: ['authorization_code', 'refresh_token'],
@@ -59,9 +62,9 @@ module.exports = {
     log({
       title: 'Save Token',
       parameters: [
-        { name: 'token', value: token },
-        { name: 'client', value: client },
-        { name: 'user', value: user },
+        {name: 'token', value: token},
+        {name: 'client', value: client},
+        {name: 'user', value: user},
       ],
     })
     db.token = {
@@ -73,15 +76,12 @@ module.exports = {
       user: user,
     }
     return new Promise(resolve => resolve(db.token))
-
   },
   getAccessToken: token => {
     /* This is where you select the token from the database where the code matches */
     log({
       title: 'Get Access Token',
-      parameters: [
-        { name: 'token', value: token },
-      ]
+      parameters: [{name: 'token', value: token}],
     })
     if (!token || token === 'undefined') return false
     return new Promise(resolve => resolve(db.token))
@@ -90,20 +90,16 @@ module.exports = {
     /* Retrieves the token from the database */
     log({
       title: 'Get Refresh Token',
-      parameters: [
-        { name: 'token', value: token },
-      ],
+      parameters: [{name: 'token', value: token}],
     })
-    DebugControl.log.variable({ name: 'db.token', value: db.token })
+    DebugControl.log.variable({name: 'db.token', value: db.token})
     return new Promise(resolve => resolve(db.token))
   },
   revokeToken: token => {
     /* Delete the token from the database */
     log({
       title: 'Revoke Token',
-      parameters: [
-        { name: 'token', value: token },
-      ]
+      parameters: [{name: 'token', value: token}],
     })
     if (!token || token === 'undefined') return false
     return new Promise(resolve => resolve(true))
@@ -130,16 +126,13 @@ module.exports = {
     log({
       title: 'Generate Authorization Code',
       parameters: [
-        { name: 'client', value: client },
-        { name: 'user', value: user },
+        {name: 'client', value: client},
+        {name: 'user', value: user},
       ],
     })
 
     const seed = crypto.randomBytes(256)
-    const code = crypto
-      .createHash('sha1')
-      .update(seed)
-      .digest('hex')
+    const code = crypto.createHash('sha1').update(seed).digest('hex')
     return code
   },
   saveAuthorizationCode: (code, client, user) => {
@@ -147,9 +140,9 @@ module.exports = {
     log({
       title: 'Save Authorization Code',
       parameters: [
-        { name: 'code', value: code },
-        { name: 'client', value: client },
-        { name: 'user', value: user },
+        {name: 'code', value: code},
+        {name: 'client', value: client},
+        {name: 'user', value: user},
       ],
     })
     db.authorizationCode = {
@@ -158,17 +151,22 @@ module.exports = {
       client: client,
       user: user,
     }
-    return new Promise(resolve => resolve(Object.assign({
-      redirectUri: `${code.redirectUri}`,
-    }, db.authorizationCode)))
+    return new Promise(resolve =>
+      resolve(
+        Object.assign(
+          {
+            redirectUri: `${code.redirectUri}`,
+          },
+          db.authorizationCode
+        )
+      )
+    )
   },
   getAuthorizationCode: authorizationCode => {
     /* this is where we fetch the stored data from the code */
     log({
       title: 'Get Authorization code',
-      parameters: [
-        { name: 'authorizationCode', value: authorizationCode },
-      ],
+      parameters: [{name: 'authorizationCode', value: authorizationCode}],
     })
     return new Promise(resolve => {
       resolve(db.authorizationCode)
@@ -178,18 +176,17 @@ module.exports = {
     /* This is where we delete codes */
     log({
       title: 'Revoke Authorization Code',
-      parameters: [
-        { name: 'authorizationCode', value: authorizationCode },
-      ],
+      parameters: [{name: 'authorizationCode', value: authorizationCode}],
     })
-    db.authorizationCode = { // DB Delete in this in memory example :)
+    db.authorizationCode = {
+      // DB Delete in this in memory example :)
       authorizationCode: '', // A string that contains the code
       expiresAt: new Date(), // A date when the code expires
       redirectUri: '', // A string of where to redirect to with this code
       client: null, // See the client section
       user: null, // Whatever you want... This is where you can be flexible with the protocol
     }
-    const codeWasFoundAndDeleted = true  // Return true if code found and deleted, false otherwise
+    const codeWasFoundAndDeleted = true // Return true if code found and deleted, false otherwise
     return new Promise(resolve => resolve(codeWasFoundAndDeleted))
   },
   verifyScope: (token, scope) => {
@@ -197,16 +194,16 @@ module.exports = {
     log({
       title: 'Verify Scope',
       parameters: [
-        { name: 'token', value: token },
-        { name: 'scope', value: scope },
+        {name: 'token', value: token},
+        {name: 'scope', value: scope},
       ],
     })
-    const userHasAccess = true  // return true if this user / client combo has access to this resource
+    const userHasAccess = true // return true if this user / client combo has access to this resource
     return new Promise(resolve => resolve(userHasAccess))
-  }
+  },
 }
 
-function log({ title, parameters }) {
+function log({title, parameters}) {
   DebugControl.log.functionName(title)
   DebugControl.log.parameters(parameters)
 }
