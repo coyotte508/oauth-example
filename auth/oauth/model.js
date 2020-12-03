@@ -1,3 +1,15 @@
+// Hack oauth2-server
+
+const AuthorizeHandler = require('express-oauth-server/node_modules/oauth2-server/lib/handlers/authorize-handler')
+const tokenUtil = require('express-oauth-server/node_modules/oauth2-server/lib/utils/token-util')
+
+AuthorizeHandler.prototype.generateAuthorizationCode = function (client, user, scope) {
+  if (this.model.generateAuthorizationCode) {
+    return this.model.generateAuthorizationCode(client, user, scope)
+  }
+  return tokenUtil.generateRandomToken()
+}
+
 // See https://oauth2-server.readthedocs.io/en/latest/model/spec.html for what you can do with this
 const crypto = require('crypto')
 const db = {
