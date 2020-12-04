@@ -8,4 +8,10 @@ router.get('/', (req, res) => {
   res.json({success: true})
 })
 
+router.get('/me', (req, res) => {
+  // Successfully reached if can hit this :)
+  DebugControl.log.variable({name: 'res.locals.oauth.token', value: res.locals.oauth.token})
+  res.json({id: 'user'})
+})
+
 module.exports = router
